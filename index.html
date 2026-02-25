@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conductr — AI Music Arranger</title>
+
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-950 text-white min-h-screen flex flex-col">
+
+  <!-- ─── Top Bar ────────────────────────────────────── -->
+  <header class="header-bar">
+    <div class="flex items-center gap-3">
+      <h1 class="text-xl font-bold tracking-tight">
+        <span class="text-cyan-400">◆</span> Conductr
+      </h1>
+      <span class="text-xs text-gray-500 hidden sm:inline">AI 4-Track Arranger</span>
+    </div>
+
+    <div class="controls-row">
+      <div class="control-group">
+        <label for="style-select">Style</label>
+        <select id="style-select" class="ctrl-select"></select>
+      </div>
+      <div class="control-group">
+        <label for="bpm-input">BPM</label>
+        <input id="bpm-input" type="number" class="ctrl-input" min="60" max="200" value="120">
+      </div>
+      <div class="control-group">
+        <label for="key-select">Key</label>
+        <select id="key-select" class="ctrl-select"></select>
+      </div>
+      <button id="btn-settings" class="btn-icon" title="API Settings">⚙</button>
+    </div>
+  </header>
+
+  <!-- ─── Main Content ───────────────────────────────── -->
+  <main class="flex-1 flex flex-col items-center px-4 pb-4 gap-4 max-w-4xl mx-auto w-full">
+
+    <!-- Current Chord Display -->
+    <div class="chord-display-area">
+      <span class="text-xs text-gray-500 uppercase tracking-widest">Detected</span>
+      <div id="current-chord" class="current-chord">—</div>
+    </div>
+
+    <!-- Virtual Piano -->
+    <section id="piano-container" class="w-full"></section>
+    <div class="flex justify-center">
+      <button id="btn-clear-selection" class="btn-sm btn-ghost" title="Clear selected notes">Clear Selection</button>
+    </div>
+
+    <!-- Chord Progression Bar -->
+    <section class="chord-bar">
+      <div class="chord-bar-header">
+        <span class="text-sm font-medium text-gray-300">Chord Progression</span>
+        <div class="flex gap-2">
+          <button id="btn-add-chord" class="btn-sm" title="Add detected chord (Enter)">+ Add</button>
+          <button id="btn-clear-chords" class="btn-sm btn-ghost" title="Clear all chords">Clear</button>
+        </div>
+      </div>
+      <div id="chord-progression" class="chord-progression-list">
+        <span class="empty-hint">Click piano keys to build a chord, then press Enter or + Add</span>
+      </div>
+      <button id="btn-generate" class="btn-generate" disabled>✨ Generate</button>
+      <button id="btn-download" class="btn-generate" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); margin-top: 0.5rem;" disabled>⬇ Download WAV</button>
+    </section>
+
+    <!-- Mixer + Transport -->
+    <section class="mixer-section">
+      <div class="transport-bar">
+        <button id="btn-play" class="btn-transport btn-play" title="Play/Pause (Space)">▶</button>
+        <button id="btn-stop" class="btn-transport" title="Stop">⏹</button>
+        <button id="btn-loop" class="btn-transport" title="Loop">🔁</button>
+        <span id="position-display" class="position-display">0:0:0</span>
+      </div>
+      <div id="mixer-tracks" class="mixer-tracks"></div>
+    </section>
+  </main>
+
+  <!-- Status Bar -->
+  <div id="status-bar" class="status-bar"></div>
+
+  <!-- ─── Settings Modal ─────────────────────────────── -->
+  <div id="settings-overlay" class="settings-overlay">
+    <div class="settings-modal">
+      <h2 class="text-lg font-bold mb-4">API Settings</h2>
+      <div class="settings-field">
+        <label for="settings-endpoint">API Endpoint</label>
+        <input id="settings-endpoint" type="text" placeholder="https://api.example.com/v1/chat/completions">
+      </div>
+      <div class="settings-field">
+        <label for="settings-apikey">API Key</label>
+        <input id="settings-apikey" type="password" placeholder="sk-...">
+      </div>
+      <div class="settings-field">
+        <label for="settings-model">Model</label>
+        <input id="settings-model" type="text" placeholder="claude-sonnet-4-20250514">
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button id="btn-save-settings" class="btn-primary">Save</button>
+        <button id="btn-cancel-settings" class="btn-ghost">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── CDN Dependencies ───────────────────────────── -->
+  <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tonal@6.2.0/browser/tonal.min.js"></script>
+
+  <!-- App (ES Module — needs HTTP server, not file://) -->
+  <script type="module" src="js/app.js"></script>
+
+  <!-- Fallback message for file:// protocol -->
+  <script>
+    if (location.protocol === 'file:') {
+      document.body.replaceChildren();
+      const msg = document.createElement('div');
+      msg.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;color:#e4e4e7;font-family:sans-serif;text-align:center;padding:2rem;background:#0a0a0f';
+      const h = document.createElement('h1');
+      h.textContent = 'Conductr needs a local server';
+      h.style.cssText = 'font-size:1.5rem;margin-bottom:1rem';
+      const p = document.createElement('p');
+      p.textContent = 'ES modules require HTTP. Run this command in the conductr folder:';
+      p.style.color = '#a1a1aa';
+      const code = document.createElement('code');
+      code.textContent = 'python3 -m http.server 8080';
+      code.style.cssText = 'display:block;margin-top:1rem;padding:0.75rem 1.5rem;background:#1a1a2e;border-radius:8px;font-size:1.1rem;color:#06b6d4';
+      const p2 = document.createElement('p');
+      p2.textContent = 'Then open http://localhost:8080';
+      p2.style.cssText = 'margin-top:0.75rem;color:#a1a1aa';
+      msg.append(h, p, code, p2);
+      document.body.appendChild(msg);
+    }
+  </script>
+</body>
+</html>

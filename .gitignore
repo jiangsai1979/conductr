@@ -1,0 +1,41 @@
+# Development
+node_modules/
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Build outputs
+dist/
+build/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# API Keys (never commit!)
+settings.json
+config.json
+
+# Temp files
+*.tmp
+*.temp
